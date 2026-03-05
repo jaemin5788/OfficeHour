@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오피스아워 시간표 생성기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273449;
+      --border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #f43f5e;
+      --gold: #f59e0b;
+      --green: #10b981;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Pretendard, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      background: linear-gradient(135deg, #818cf8, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      color: var(--muted);
+      margin-top: .5rem;
+      font-size: .95rem;
+    }
+
+    .steps {
+      display: flex;
+      margin-bottom: 2rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .step-tab {
+      flex: 1;
+      padding: .75rem .5rem;
+      text-align: center;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--muted);
+      transition: all .2s;
+      border: none;
+      border-right: 1px solid var(--border);
+    }
+
+    .step-tab:last-child {
+      border-right: none;
+    }
+
+    .step-tab.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .step-tab:hover:not(.active) {
+      background: var(--surface2);
+    }
+
+    .step-num {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .15);
+      font-size: .72rem;
+      line-height: 20px;
+      text-align: center;
+      margin-right: .35rem;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      padding: .6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: .9rem;
+      border: none;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-accent:hover {
+      opacity: .88;
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .btn-sm {
+      padding: .35rem .75rem;
+      font-size: .8rem;
+    }
+
+    .btn-green {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn-teal {
+      background: #0d9488;
+      color: #fff;
+    }
+
+    .btn-teal:hover {
+      background: #0f766e;
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* 안내 스텝 */
+    .guide-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .guide-step {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      background: var(--surface2);
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+    }
+
+    .guide-step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: .9rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .guide-step-body h3 {
+      font-size: .95rem;
+      font-weight: 700;
+      margin-bottom: .3rem;
+    }
+
+    .guide-step-body p {
+      font-size: .83rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* 폼 문항 박스 */
+    .form-question {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: .85rem 1.1rem;
+      margin-bottom: .6rem;
+    }
+
+    .form-question-title {
+      font-size: .88rem;
+      font-weight: 700;
+      margin-bottom: .3rem;
+    }
+
+    .form-question-meta {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: .4rem;
+    }
+
+    .form-question-opts {
+      font-size: .8rem;
+      color: #c7d2fe;
+      line-height: 1.8;
+    }
+
+    .form-question-opts span {
+      display: block;
+    }
+
+    /* 옵션 5열 그리드 */
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: .25rem .5rem;
+    }
+
+    .option-grid span {
+      font-size: .78rem;
+      color: #c7d2fe;
+      padding: .1rem 0;
+    }
+
+    /* 배지 */
+    .badge {
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      font-size: .73rem;
+      font-weight: 700;
+    }
+
+    .badge-exec {
+      background: rgba(245, 158, 11, .22);
+      color: #fbbf24;
+    }
+
+    .badge-member {
+      background: rgba(99, 102, 241, .2);
+      color: #c7d2fe;
+    }
+
+    /* 파일 입력 */
+    input[type=file] {
+      background: var(--surface2);
+      border: 1px dashed rgba(99, 102, 241, .4);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      color: var(--text);
+      font-size: .88rem;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      display: block;
+      transition: border-color .2s;
+    }
+
+    input[type=file]:hover {
+      border-color: var(--primary);
+    }
+
+    /* 슬롯 설정 그리드 */
+    .slot-cfg-grid {
+      display: grid;
+      grid-template-columns: 88px repeat(5, 1fr);
+      gap: 3px;
+    }
+
+    .cfg-day-hdr {
+      text-align: center;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding: .35rem 0;
+    }
+
+    .cfg-time-lbl {
+      font-size: .67rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: .4rem;
+      line-height: 1.3;
+    }
+
+    .cfg-cell {
+      height: 38px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 700;
+      user-select: none;
+      transition: all .15s;
+      border: 1.5px solid transparent;
+    }
+
+    .cfg-cell.on {
+      background: rgba(16, 185, 129, .18);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .cfg-cell.off {
+      background: rgba(255, 255, 255, .03);
+      border-color: rgba(255, 255, 255, .07);
+      color: rgba(255, 255, 255, .2);
+    }
+
+    .cfg-cell:hover {
+      opacity: .75;
+    }
+
+    /* 멤버 미리보기 */
+    .member-preview {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .member-row {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: .65rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .member-row-name {
+      font-weight: 700;
+      flex: 1;
+      min-width: 70px;
+    }
+
+    .slot-count {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* 결과 그리드 */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(5, 1fr);
+      gap: 4px;
+      margin-top: 1rem;
+    }
+
+    .result-header {
+      text-align: center;
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding: .5rem 0;
+    }
+
+    .result-time {
+      font-size: .68rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: .5rem;
+      line-height: 1.3;
+    }
+
+    .result-cell {
+      border-radius: 8px;
+      min-height: 64px;
+      padding: .4rem .5rem;
+      background: var(--surface2);
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+    }
+
+    .result-cell.empty {
+      background: rgba(255, 255, 255, .03);
+    }
+
+    .result-cell.disabled {
+      background: rgba(255, 255, 255, .015);
+      border: 1px dashed rgba(255, 255, 255, .06);
+    }
+
+    .result-lead {
+      background: rgba(99, 102, 241, .25);
+      border-radius: 5px;
+      padding: .2rem .4rem;
+      font-size: .72rem;
+      color: #a5b4fc;
+      font-weight: 700;
+    }
+
+    .result-support {
+      background: rgba(244, 63, 94, .2);
+      border-radius: 5px;
+      padding: .2rem .4rem;
+      font-size: .72rem;
+      color: #fca5a5;
+      font-weight: 700;
+    }
+
+    /* 통계 */
+    .stat-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: .5rem;
+    }
+
+    .stat-table th,
+    .stat-table td {
+      padding: .55rem .85rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .85rem;
+      text-align: left;
+    }
+
+    .stat-table th {
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(255, 255, 255, .02);
+    }
+
+    .stat-bar-wrap {
+      width: 80px;
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: .5rem;
+    }
+
+    .stat-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .4s;
+    }
+
+    .warn-box {
+      background: rgba(245, 158, 11, .1);
+      border: 1px solid rgba(245, 158, 11, .3);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .warn-box p {
+      font-size: .85rem;
+      color: #fde68a;
+      margin: .2rem 0;
+    }
+
+    .err-box {
+      background: rgba(244, 63, 94, .1);
+      border: 1px solid rgba(244, 63, 94, .3);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .err-box p {
+      font-size: .85rem;
+      color: #fca5a5;
+      margin: .2rem 0;
+    }
+
+    /* 룰렛 */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      flex-direction: column;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .roulette-box {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 3rem 4rem;
+      text-align: center;
+      border: 2px solid var(--primary);
+    }
+
+    .roulette-name {
+      font-size: 3rem;
+      font-weight: 800;
+      min-height: 4rem;
+      background: linear-gradient(135deg, #818cf8, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* 직책별 배정 횟수 설정 */
+    .pos-max-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .55rem;
+      margin-top: .75rem;
+    }
+
+    .pos-max-row {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: .65rem .9rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+    }
+
+    .pos-max-ctrl {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .pos-max-ctrl button {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .pos-max-ctrl button:hover {
+      background: var(--surface2);
+      border-color: var(--primary);
+    }
+
+    .pos-max-ctrl input[type=number] {
+      width: 40px;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: .95rem;
+      font-weight: 700;
+      padding: .2rem 0;
+      font-family: inherit;
+      -moz-appearance: textfield;
+    }
+
+    .pos-max-ctrl input[type=number]::-webkit-inner-spin-button,
+    .pos-max-ctrl input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    @media(max-width:500px) {
+      .pos-max-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    details summary {
+      cursor: pointer;
+      user-select: none;
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: .4rem 0;
+      list-style: none;
+    }
+
+    details summary::before {
+      content: '▶ ';
+      font-size: .7rem;
+    }
+
+    details[open] summary::before {
+      content: '▼ ';
+    }
+
+    details[open] summary {
+      color: var(--text);
+      margin-bottom: .75rem;
+    }
+
+    @media(max-width:640px) {
+      .header h1 {
+        font-size: 1.7rem;
+      }
+
+      .result-grid {
+        grid-template-columns: 60px repeat(5, 1fr);
+      }
+
+      .slot-cfg-grid {
+        grid-template-columns: 68px repeat(5, 1fr);
+      }
+
+      .option-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .roulette-box {
+        padding: 2rem 1.5rem;
+      }
+
+      .roulette-name {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="header">
+      <h1>오피스아워 시간표</h1>
+      <p>공과대학 학생회 오피스아워 시간표 제작</p>
+    </div>
+
+    <div class="steps">
+      <button class="step-tab active" data-step="1" onclick="goStep(1)"><span class="step-num">1</span>안내</button>
+      <button class="step-tab" data-step="2" onclick="goStep(2)"><span class="step-num">2</span>파일 업로드</button>
+      <button class="step-tab" data-step="3" onclick="goStep(3)"><span class="step-num">3</span>배정 생성</button>
+      <button class="step-tab" data-step="4" onclick="goStep(4)"><span class="step-num">4</span>결과 확인</button>
+    </div>
+
+    <!-- ── STEP 1: 안내 ── -->
+    <div id="panel1" class="panel active">
+
+      <div class="card">
+        <div class="card-title">사용 방법</div>
+        <div class="guide-steps">
+          <div class="guide-step">
+            <div class="guide-step-num">1</div>
+            <div class="guide-step-body">
+              <h3>구글폼 설문 만들기</h3>
+              <p>아래의 <strong style="color:#6ee7b7">구글폼 설문 문항 구성</strong> 양식과 동일하게 오피스아워 담당자가 구글폼을 제작한다.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">2</div>
+            <div class="guide-step-body">
+              <h3>응답 수집</h3>
+              <p>구글폼 링크를 공유 후, 응답을 수집한다.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">3</div>
+            <div class="guide-step-body">
+              <h3>CSV 다운로드</h3>
+              <p>구글폼 → <strong>응답</strong> 탭 → 스프레드시트 아이콘 → Google Sheets 열기<br>
+                → <strong>파일 → 다운로드 → Microsoft Excel (.xlsx)</strong></p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="guide-step-num">4</div>
+            <div class="guide-step-body">
+              <h3>직책별 배정 횟수 설정 &amp; 운영 슬롯 설정</h3>
+              <p><strong>2단계</strong>에서 직책별 오피스아워 진행 횟수와 운영 시간을 설정하고, 응답 CSV를 업로드한다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 구글폼 설문 문항 안내 -->
+      <div class="card">
+        <div class="card-title">구글폼 설문 문항 구성</div>
+
+        <div class="form-question">
+          <div class="form-question-title">1. 이름</div>
+          <div class="form-question-meta">단답형 · 필수</div>
+        </div>
+
+        <div class="form-question">
+          <div class="form-question-title">2. 직책</div>
+          <div class="form-question-meta">객관식 단일 선택 · 필수</div>
+          <div class="form-question-opts">
+            <span>○ 회장단</span><span>○ 국장단</span><span>○ 차장단</span><span>○ 국원</span>
+          </div>
+        </div>
+
+        <div class="form-question">
+          <div class="form-question-title">3. 근무 가능 시간대</div>
+          <div class="form-question-meta">체크박스 복수 선택 · 필수</div>
+          <div class="option-grid" style="margin-top:.4rem">
+            <span>□ 월 10:30~12:00</span><span>□ 화 10:30~12:00</span><span>□ 수 10:30~12:00</span><span>□ 목
+              10:30~12:00</span><span>□ 금 10:30~12:00</span>
+            <span>□ 월 12:00~13:30</span><span>□ 화 12:00~13:30</span><span>□ 수 12:00~13:30</span><span>□ 목
+              12:00~13:30</span><span>□ 금 12:00~13:30</span>
+            <span>□ 월 13:30~15:00</span><span>□ 화 13:30~15:00</span><span>□ 수 13:30~15:00</span><span>□ 목
+              13:30~15:00</span><span>□ 금 13:30~15:00</span>
+            <span>□ 월 15:00~16:30</span><span>□ 화 15:00~16:30</span><span>□ 수 15:00~16:30</span><span>□ 목
+              15:00~16:30</span><span>□ 금 15:00~16:30</span>
+            <span>□ 월 16:30~18:00</span><span>□ 화 16:30~18:00</span><span>□ 수 16:30~18:00</span><span>□ 목
+              16:30~18:00</span><span>□ 금 16:30~18:00</span>
+          </div>
+        </div>
+
+        <div class="form-question">
+          <div class="form-question-title">4. 연속 근무 선호도</div>
+          <div class="form-question-meta">객관식 · 필수 &nbsp;|&nbsp; 설명: 오피스아워를 2타임 연속으로 배정받기를 원하시나요?</div>
+          <div class="form-question-opts">
+            <span>○ 예, 선호합니다</span><span>○ 아니오, 선호하지 않습니다</span><span>○ 상관없습니다</span>
+          </div>
+        </div>
+
+        <div class="form-question" style="margin-bottom:0">
+          <div class="form-question-title">5. 에브리타임 학기 중 시간표</div>
+          <div class="form-question-meta">파일 업로드 · 선택 &nbsp;|&nbsp; 설명: 학기 중 시간표 캡처 이미지를 업로드해주세요. (관리자 참고용)</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem">※ 이 항목은 관리자가 수동으로 확인하는 용도이며 자동 배정에는 사용되지
+            않습니다.</div>
+        </div>
+      </div>
+
+      <div style="text-align:right;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="goStep(2)">파일 업로드하러 가기 &rarr;</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: 파일 업로드 ── -->
+    <div id="panel2" class="panel">
+
+      <!-- 직책별 배정 횟수 설정 -->
+      <div class="card">
+        <details id="posMaxDetails" open>
+          <summary>직책별 배정 횟수 설정 &nbsp;<span id="posMaxSummary" style="color:var(--muted);font-size:.8rem"></span>
+          </summary>
+          <p style="font-size:.83rem;color:var(--muted);margin-bottom:.5rem;margin-top:.25rem">
+            이번 학기 각 직책의 오피스아워 배정 목표 횟수를 설정하세요. 상황에 따라 자유롭게 조정할 수 있습니다.
+          </p>
+          <div class="pos-max-grid" id="posMaxGrid"></div>
+          <div style="margin-top:.75rem;display:flex;gap:.5rem;align-items:center">
+            <button class="btn btn-ghost btn-sm" onclick="resetPositionMax()">기본값으로 초기화</button>
+            <span id="posMaxSaveNote" style="font-size:.78rem;color:var(--green);display:none">✓ 저장됨</span>
+          </div>
+        </details>
+      </div>
+
+      <!-- 운영 슬롯 설정 -->
+      <div class="card">
+        <details id="slotConfigDetails" open>
+          <summary>운영 슬롯 설정 &nbsp;<span id="slotConfigSummary" style="color:var(--green);font-size:.8rem"></span>
+          </summary>
+          <p style="font-size:.83rem;color:var(--muted);margin-bottom:.85rem">
+            이번 학기 운영할 시간 슬롯을 선택하세요. 클릭으로 켜고/끌 수 있습니다.<br>
+            <strong style="color:var(--text)">초록색</strong> = 운영, 어두운색 = 미운영
+          </p>
+          <div class="slot-cfg-grid" id="slotCfgGrid"></div>
+          <div style="display:flex;gap:.5rem;margin-top:.85rem">
+            <button class="btn btn-ghost btn-sm" onclick="setAllSlots(true)">전체 켜기</button>
+            <button class="btn btn-ghost btn-sm" onclick="setAllSlots(false)">전체 끄기</button>
+          </div>
+        </details>
+      </div>
+
+      <!-- 파일 업로드 -->
+      <div class="card">
+        <div class="card-title">구글폼 응답 파일 업로드</div>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">
+          구글폼 응답을 <strong style="color:var(--text)">xlsx</strong> 형식으로 내려받아 업로드하세요. (Google Sheets → 파일 → 다운로드 → Microsoft Excel)<br>
+          열 이름에 <code
+            style="background:rgba(255,255,255,.07);border-radius:4px;padding:.1rem .35rem;font-size:.8rem">이름</code>,
+          <code
+            style="background:rgba(255,255,255,.07);border-radius:4px;padding:.1rem .35rem;font-size:.8rem">직책</code>,
+          <code
+            style="background:rgba(255,255,255,.07);border-radius:4px;padding:.1rem .35rem;font-size:.8rem">근무 가능 시간대</code>,
+          <code
+            style="background:rgba(255,255,255,.07);border-radius:4px;padding:.1rem .35rem;font-size:.8rem">연속 근무 선호도</code>
+          가 포함되면 자동 인식됩니다.
+        </p>
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <input type="file" id="csvFile" accept=".xlsx,.xls" />
+          </div>
+          <button class="btn btn-primary" onclick="importCSV()">불러오기</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearMembers()">초기화</button>
+        </div>
+        <div id="csvLog" style="margin-top:.65rem;font-size:.83rem"></div>
+      </div>
+
+      <!-- 멤버 미리보기 -->
+      <div class="card" id="previewCard" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div class="card-title" style="margin-bottom:0">불러온 멤버 (<span id="memberCount">0</span>명)</div>
+        </div>
+        <div id="memberPreview" class="member-preview"></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:.5rem">
+        <button class="btn btn-ghost" onclick="goStep(1)">&larr; 안내</button>
+        <button class="btn btn-primary" id="btnToStep3" onclick="goStep(3)" disabled>다음: 배정 생성 &rarr;</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: 배정 생성 ── -->
+    <div id="panel3" class="panel">
+      <div class="card">
+        <div class="card-title">시간표 자동 배정</div>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:1.25rem">
+          직책별 배정 횟수·가용 시간·연속 근무 선호도를 고려해 배정합니다.<br>
+          랜덤 요소가 적용되어 실행할 때마다 결과가 달라질 수 있습니다.
+        </p>
+        <div id="step3Summary" style="margin-bottom:1.25rem;font-size:.85rem;color:var(--muted)"></div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <button class="btn btn-primary" style="padding:.9rem 2rem;font-size:1rem" onclick="generateSchedule()">
+            &#9889; 배정 생성
+          </button>
+        </div>
+      </div>
+      <div style="text-align:left;margin-top:.5rem">
+        <button class="btn btn-ghost" onclick="goStep(2)">&larr; 파일 다시 업로드</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: 결과 확인 ── -->
+    <div id="panel4" class="panel">
+      <div class="card">
+        <div
+          style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+          <div class="card-title" style="margin-bottom:0">주간 시간표</div>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            <button class="btn btn-green btn-sm" onclick="exportCSV()">CSV 내보내기</button>
+            <button class="btn btn-ghost btn-sm" onclick="copyTable()">텍스트 복사</button>
+            <button class="btn btn-ghost btn-sm" onclick="goStep(3)">&larr; 다시 생성</button>
+          </div>
+        </div>
+        <div style="overflow:auto">
+          <div class="result-grid" id="resultGrid"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">멤버별 배정 현황</div>
+        <div style="overflow:auto">
+          <table class="stat-table" id="statTable"></table>
+        </div>
+      </div>
+      <div id="unassignedBox"></div>
+      <div id="warningBox"></div>
+    </div>
+  </div>
+
+  <!-- 룰렛 -->
+  <div class="overlay" id="overlay">
+    <div class="roulette-box">
+      <div style="font-size:.9rem;color:var(--muted);margin-bottom:1rem" id="rouletteSlotLabel"></div>
+      <div class="roulette-name" id="rouletteName">???</div>
+      <div style="font-size:1rem;color:var(--muted);margin-top:.5rem" id="rouletteRole"></div>
+      <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:center">
+        <button class="btn btn-primary" id="btnNext" onclick="rouletteNext()">다음 배정 &rarr;</button>
+        <button class="btn btn-ghost" onclick="finishRoulette()">완료 후 결과 보기</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script>
+    const DAYS = ['월', '화', '수', '목', '금'];
+    const DAY_VALUES = [1, 2, 3, 4, 5];
+    const TIMES = ['10:30~12:00', '12:00~13:30', '13:30~15:00', '15:00~16:30', '16:30~18:00'];
+    const TIMES_START = ['10:30', '12:00', '13:30', '15:00', '16:30'];
+    const TIMES_END = ['12:00', '13:30', '15:00', '16:30', '18:00'];
+    const DAY_ENUM = { MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5 };
+    const POSITION_DEFAULT_MAX = { 회장단: 1, 국장단: 1, 차장단: 1, 국원: 2 };
+    let positionMax = { ...POSITION_DEFAULT_MAX }; // 직책별 배정 횟수 (조정 가능)
+    const POSITION_CLASS = { 회장단: 'badge-exec', 국장단: 'badge-exec', 차장단: 'badge-exec', 국원: 'badge-member' };
+    const POSITION_LABEL = ['회장단', '국장단', '차장단', '국원'];
+    const POSITION_MAX_KEY = 'officehour_position_max';
+
+    // 슬롯 이름 → slotId 매핑
+    const SLOT_MAP = {};
+    DAYS.forEach((d, di) => {
+      TIMES_START.forEach((ts, ti) => {
+        const te = TIMES_END[ti], id = (di + 1) * 10 + ti;
+        SLOT_MAP[`${d} ${ts}~${te}`] = id; SLOT_MAP[`${d} ${ts}-${te}`] = id;
+        SLOT_MAP[`${d}요일 ${ts}~${te}`] = id; SLOT_MAP[`${d}요일 ${ts}-${te}`] = id;
+      });
+    });
+
+    // 전체 슬롯 ID 목록
+    const ALL_SLOT_IDS = [];
+    DAY_VALUES.forEach(dv => TIMES.forEach((_, ti) => ALL_SLOT_IDS.push(dv * 10 + ti)));
+
+    let members = [], scheduleResult = null, rouletteQueue = [], rouletteIdx = 0;
+    let enabledSlots = new Set(ALL_SLOT_IDS); // 운영 슬롯 (기본: 전체)
+
+    // ─── 초기화 ─────────────────────────────────────
+    const FORM_URL_KEY = 'officehour_form_url';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPositionMax();
+      buildPosMaxGrid();
+      updatePosMaxSummary();
+      buildSlotCfgGrid();
+      updateSlotCfgSummary();
+      loadFormUrl();
+    });
+
+    // ─── 구글폼 링크 관리 ────────────────────────────
+    function loadFormUrl() {
+      const saved = localStorage.getItem(FORM_URL_KEY) || '';
+      const input = document.getElementById('formUrlInput');
+      if (input) { input.value = saved; updateFormUrlUI(); }
+    }
+
+    function saveFormUrl() {
+      const url = (document.getElementById('formUrlInput').value || '').trim();
+      if (url && !url.includes('docs.google.com/forms')) {
+        setFormStatus('구글폼 URL 형식이 아닙니다. (docs.google.com/forms/... 형식이어야 합니다)', 'err');
+        return;
+      }
+      localStorage.setItem(FORM_URL_KEY, url);
+      updateFormUrlUI();
+      setFormStatus(url ? '✓ 링크가 저장되었습니다.' : '링크가 삭제되었습니다.', url ? 'ok' : 'muted');
+    }
+
+    function clearFormUrl() {
+      document.getElementById('formUrlInput').value = '';
+      localStorage.removeItem(FORM_URL_KEY);
+      updateFormUrlUI();
+      setFormStatus('링크가 삭제되었습니다.', 'muted');
+    }
+
+    function openForm() {
+      const url = localStorage.getItem(FORM_URL_KEY);
+      if (url) window.open(url, '_blank');
+    }
+
+    function updateFormUrlUI() {
+      const input = document.getElementById('formUrlInput');
+      const saved = localStorage.getItem(FORM_URL_KEY) || '';
+      const current = (input ? input.value : '').trim();
+      const hasStored = !!saved;
+      document.getElementById('btnOpenForm').disabled = !hasStored;
+      const clearBtn = document.getElementById('btnClearForm');
+      if (clearBtn) clearBtn.style.display = hasStored ? 'inline-flex' : 'none';
+      if (!document.getElementById('formUrlStatus').textContent && hasStored) {
+        setFormStatus('✓ 링크가 저장되어 있습니다.', 'ok');
+      }
+    }
+
+    function setFormStatus(msg, type) {
+      const el = document.getElementById('formUrlStatus');
+      if (!el) return;
+      const colors = { ok: 'var(--green)', err: '#fca5a5', muted: 'var(--muted)' };
+      el.style.color = colors[type] || 'var(--muted)';
+      el.textContent = msg;
+    }
+
+    // ─── 직책별 배정 횟수 관리 ─────────────────────────
+    function loadPositionMax() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(POSITION_MAX_KEY) || 'null');
+        if (saved && typeof saved === 'object') {
+          POSITION_LABEL.forEach(p => { if (saved[p] > 0) positionMax[p] = saved[p]; });
+        }
+      } catch (e) { }
+    }
+
+    function savePositionMax() {
+      localStorage.setItem(POSITION_MAX_KEY, JSON.stringify(positionMax));
+      const note = document.getElementById('posMaxSaveNote');
+      if (note) { note.style.display = 'inline'; setTimeout(() => note.style.display = 'none', 1500); }
+    }
+
+    function buildPosMaxGrid() {
+      const grid = document.getElementById('posMaxGrid');
+      if (!grid) return;
+      grid.innerHTML = POSITION_LABEL.map(p => {
+        const cls = POSITION_CLASS[p];
+        const v = positionMax[p];
+        return `<div class="pos-max-row">
+          <span class="badge ${cls}" style="flex-shrink:0">${p}</span>
+          <div class="pos-max-ctrl">
+            <button onclick="adjustPosMax('${p}',-1)">−</button>
+            <input type="number" id="pm_${p}" value="${v}" min="0" max="2" step="1"
+              oninput="onPosMaxInput('${p}',this.value)" />
+            <button onclick="adjustPosMax('${p}',1)">+</button>
+          </div>
+        </div>`;
+      }).join('');
+      updatePosMaxSummary();
+    }
+
+    function adjustPosMax(pos, delta) {
+      const next = Math.max(0, Math.min(2, positionMax[pos] + delta));
+      positionMax[pos] = next;
+      const el = document.getElementById('pm_' + pos);
+      if (el) el.value = next;
+      updatePosMaxSummary();
+      savePositionMax();
+    }
+
+    function onPosMaxInput(pos, val) {
+      const n = parseInt(val, 10);
+      if (!isNaN(n) && n >= 0 && n <= 2) {
+        positionMax[pos] = n;
+        updatePosMaxSummary();
+        savePositionMax();
+      }
+    }
+
+    function resetPositionMax() {
+      positionMax = { ...POSITION_DEFAULT_MAX };
+      POSITION_LABEL.forEach(p => {
+        const el = document.getElementById('pm_' + p);
+        if (el) el.value = positionMax[p];
+      });
+      updatePosMaxSummary();
+      savePositionMax();
+    }
+
+    function updatePosMaxSummary() {
+      const el = document.getElementById('posMaxSummary');
+      if (!el) return;
+      el.textContent = POSITION_LABEL.map(p => `${p} ${positionMax[p]}회`).join(' · ');
+    }
+
+    // ─── 네비게이션 ──────────────────────────────────
+    function goStep(n) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.step-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('panel' + n).classList.add('active');
+      document.querySelector('[data-step="' + n + '"]').classList.add('active');
+      if (n === 3) renderStep3Summary();
+      if (n === 4 && scheduleResult) renderResult();
+    }
+
+    // ─── 슬롯 설정 그리드 ────────────────────────────
+    function buildSlotCfgGrid() {
+      const grid = document.getElementById('slotCfgGrid');
+      let html = '<div></div>';
+      DAYS.forEach(d => { html += `<div class="cfg-day-hdr">${d}</div>`; });
+      TIMES.forEach((t, ti) => {
+        html += `<div class="cfg-time-lbl">${t}</div>`;
+        DAY_VALUES.forEach(dv => {
+          const id = dv * 10 + ti;
+          const on = enabledSlots.has(id);
+          html += `<div class="cfg-cell ${on ? 'on' : 'off'}" id="sc_${id}" onclick="toggleSlot(${id})">${on ? '✓' : '✗'}</div>`;
+        });
+      });
+      grid.innerHTML = html;
+    }
+
+    function toggleSlot(id) {
+      if (enabledSlots.has(id)) enabledSlots.delete(id);
+      else enabledSlots.add(id);
+      const el = document.getElementById('sc_' + id);
+      const on = enabledSlots.has(id);
+      el.className = 'cfg-cell ' + (on ? 'on' : 'off');
+      el.textContent = on ? '✓' : '✗';
+      updateSlotCfgSummary();
+    }
+
+    function setAllSlots(on) {
+      ALL_SLOT_IDS.forEach(id => {
+        if (on) enabledSlots.add(id); else enabledSlots.delete(id);
+        const el = document.getElementById('sc_' + id);
+        if (el) { el.className = 'cfg-cell ' + (on ? 'on' : 'off'); el.textContent = on ? '✓' : '✗'; }
+      });
+      updateSlotCfgSummary();
+    }
+
+    function updateSlotCfgSummary() {
+      const n = enabledSlots.size;
+      document.getElementById('slotConfigSummary').textContent = `${n}슬롯 × 2(정/부) = ${n * 2}타임 운영`;
+    }
+
+    // ─── 구글폼 설정 파일 다운로드 ───────────────────
+    function downloadFormGuide() {
+      const lines = [
+        '오피스아워 시간표 생성기 — 구글폼 설문 설정 가이드',
+        '='.repeat(50),
+        '',
+        '이 파일을 참고하여 구글폼을 직접 제작해주세요.',
+        '구글폼 주소: https://forms.google.com',
+        '',
+        '★ 중요: 문항 제목과 선택지 텍스트를 정확히 아래와 같이 입력해야',
+        '  CSV 업로드 시 자동 인식됩니다.',
+        '',
+        '-'.repeat(50),
+        '',
+        '[문항 1] 이름',
+        '  형식: 단답형',
+        '  필수: 예',
+        '',
+        '-'.repeat(50),
+        '',
+        '[문항 2] 직책',
+        '  형식: 객관식 (단일 선택)',
+        '  필수: 예',
+        '  선택지:',
+        '    ○ 회장단',
+        '    ○ 국장단',
+        '    ○ 차장단',
+        '    ○ 국원',
+        '',
+        '-'.repeat(50),
+        '',
+        '[문항 3] 근무 가능 시간대',
+        '  형식: 체크박스 (복수 선택)',
+        '  필수: 예',
+        '  선택지 (25개, 순서대로 추가):',
+        '    □ 월 10:30~12:00',
+        '    □ 월 12:00~13:30',
+        '    □ 월 13:30~15:00',
+        '    □ 월 15:00~16:30',
+        '    □ 월 16:30~18:00',
+        '    □ 화 10:30~12:00',
+        '    □ 화 12:00~13:30',
+        '    □ 화 13:30~15:00',
+        '    □ 화 15:00~16:30',
+        '    □ 화 16:30~18:00',
+        '    □ 수 10:30~12:00',
+        '    □ 수 12:00~13:30',
+        '    □ 수 13:30~15:00',
+        '    □ 수 15:00~16:30',
+        '    □ 수 16:30~18:00',
+        '    □ 목 10:30~12:00',
+        '    □ 목 12:00~13:30',
+        '    □ 목 13:30~15:00',
+        '    □ 목 15:00~16:30',
+        '    □ 목 16:30~18:00',
+        '    □ 금 10:30~12:00',
+        '    □ 금 12:00~13:30',
+        '    □ 금 13:30~15:00',
+        '    □ 금 15:00~16:30',
+        '    □ 금 16:30~18:00',
+        '',
+        '-'.repeat(50),
+        '',
+        '[문항 4] 연속 근무 선호도',
+        '  형식: 객관식 (단일 선택)',
+        '  설명: 오피스아워를 2타임 연속으로 배정받기를 원하시나요?',
+        '  필수: 예',
+        '  선택지:',
+        '    ○ 예, 선호합니다',
+        '    ○ 아니오, 선호하지 않습니다',
+        '    ○ 상관없습니다',
+        '',
+        '-'.repeat(50),
+        '',
+        '[문항 5] 에브리타임 학기 중 시간표',
+        '  형식: 파일 업로드',
+        '  설명: 학기 중 에브리타임 시간표 캡처 이미지를 업로드해주세요. (관리자 참고용)',
+        '  필수: 아니오',
+        '  ※ 이 항목은 자동 배정에 사용되지 않으며 관리자가 수동으로 확인합니다.',
+        '',
+        '='.repeat(50),
+        '',
+        'CSV 내보내기 방법:',
+        '  1. 구글폼 → [응답] 탭 클릭',
+        '  2. 스프레드시트 아이콘 클릭 → Google Sheets 열기',
+        '  3. Google Sheets → 파일 → 다운로드 → Microsoft Excel (.xlsx)',
+        '',
+        '='.repeat(50),
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = '오피스아워_구글폼_설정가이드.txt'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ─── CSV 불러오기 ────────────────────────────────
+    function clearMembers() {
+      members = [];
+      document.getElementById('csvFile').value = '';
+      document.getElementById('csvLog').textContent = '';
+      renderPreview();
+    }
+
+    function importCSV() {
+      const file = document.getElementById('csvFile').files[0];
+      if (!file) { showLog('파일을 선택하세요.', 'err'); return; }
+
+      const isXlsx = /\.(xlsx|xls)$/i.test(file.name);
+      const reader = new FileReader();
+
+      reader.onload = e => {
+        try {
+          const parsed = isXlsx
+            ? parseFormXLSX(e.target.result)
+            : parseFormCSV(e.target.result);
+          let added = 0, skipped = [];
+          parsed.forEach(row => {
+            if (members.find(m => m.name === row.name)) { skipped.push(row.name); return; }
+            members.push(row); added++;
+          });
+          renderPreview();
+          let msg = `${added}명 불러오기 완료.`;
+          if (skipped.length) msg += ` (중복 건너뜀: ${skipped.join(', ')})`;
+          showLog(msg, 'ok');
+        } catch (err) { showLog('오류: ' + err.message, 'err'); }
+      };
+
+      if (isXlsx) reader.readAsArrayBuffer(file);
+      else reader.readAsText(file, 'UTF-8');
+    }
+
+    function parseFormXLSX(arrayBuffer) {
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (rows.length < 2) throw new Error('데이터가 없습니다.');
+
+      const headers = rows[0].map(h => String(h).trim());
+      const col = kw => headers.findIndex(h => h.includes(kw));
+
+      const nameCol = col('이름'), posCol = col('직책'), consecCol = col('선호도');
+      if (nameCol < 0) throw new Error('"이름" 열을 찾을 수 없습니다.');
+      if (posCol < 0)  throw new Error('"직책" 열을 찾을 수 없습니다.');
+
+      // 시간대 시작시각 → slotIndex 매핑
+      const TIME_IDX = { '10:30': 0, '12:00': 1, '13:30': 2, '15:00': 3, '16:30': 4 };
+      const DAY_VAL  = { '월': 1, '화': 2, '수': 3, '목': 4, '금': 5 };
+
+      // "근무 가능 시간대 [10:30~...]" 형식의 열을 시간대별로 수집
+      const timeColMap = {}; // slotIndex → colIdx
+      headers.forEach((h, ci) => {
+        if (!h.includes('근무 가능 시간대')) return;
+        for (const [startTime, idx] of Object.entries(TIME_IDX)) {
+          if (h.includes(startTime)) { timeColMap[idx] = ci; break; }
+        }
+      });
+
+      if (Object.keys(timeColMap).length === 0)
+        throw new Error('"근무 가능 시간대" 열을 찾을 수 없습니다. 헤더를 확인하세요.');
+
+      const result = [];
+      for (let i = 1; i < rows.length; i++) {
+        const c = rows[i];
+        const name = String(c[nameCol] || '').trim();
+        if (!name) continue;
+
+        const rawPos = String(c[posCol] || '').trim();
+        const position = ['회장단', '국장단', '차장단', '국원'].find(p => rawPos.includes(p)) || '국원';
+
+        // 각 시간대 열에서 선택된 요일을 읽어 slotId 변환
+        // 셀 값 형식: "수, 목" (선택된 요일, 쉼표 구분)
+        const availableSlotIds = [];
+        for (const [idxStr, ci] of Object.entries(timeColMap)) {
+          const timeIdx = Number(idxStr);
+          const cell = String(c[ci] || '').trim();
+          if (!cell) continue;
+          cell.split(',').map(s => s.trim()).forEach(day => {
+            const dv = DAY_VAL[day];
+            if (!dv) return;
+            const id = dv * 10 + timeIdx;
+            if (!availableSlotIds.includes(id)) availableSlotIds.push(id);
+          });
+        }
+
+        let prefersConsecutive = null; // null = 상관없음
+        if (consecCol >= 0) {
+          const v = String(c[consecCol] || '').trim();
+          if (v.startsWith('예')) prefersConsecutive = true;
+          else if (v.startsWith('아니오')) prefersConsecutive = false;
+          // '상관없습니다' 또는 빈 값 → null 유지
+        }
+
+        result.push({ name, position, availableSlotIds, prefersConsecutive });
+      }
+      if (!result.length) throw new Error('유효한 응답이 없습니다.');
+      return result;
+    }
+
+    function showLog(msg, type) {
+      const el = document.getElementById('csvLog');
+      el.style.color = type === 'ok' ? 'var(--green)' : '#fca5a5';
+      el.textContent = (type === 'ok' ? '✓ ' : '✗ ') + msg;
+    }
+
+    function parseFormCSV(text) {
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const lines = splitCSVLines(text).filter(l => l.trim());
+      if (lines.length < 2) throw new Error('데이터가 없습니다.');
+
+      const headers = parseCSVRow(lines[0]).map(h => h.trim());
+      const col = kw => headers.findIndex(h => h.includes(kw));
+
+      const nameCol = col('이름'), posCol = col('직책'), timeCol = col('시간'), consecCol = col('선호도');
+      if (nameCol < 0) throw new Error('"이름" 열을 찾을 수 없습니다.');
+      if (posCol < 0) throw new Error('"직책" 열을 찾을 수 없습니다.');
+      if (timeCol < 0) throw new Error('"근무 가능 시간대" 열을 찾을 수 없습니다.');
+
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCSVRow(lines[i]);
+        const name = (cols[nameCol] || '').trim(); if (!name) continue;
+
+        const rawPos = (cols[posCol] || '').trim();
+        const position = ['회장단', '국장단', '차장단', '국원'].find(p => rawPos.includes(p)) || '국원';
+
+        const rawTime = cols[timeCol] || '';
+        const availableSlotIds = [];
+        rawTime.split(',').map(s => s.trim()).forEach(s => {
+          const id = SLOT_MAP[s];
+          if (id !== undefined && !availableSlotIds.includes(id)) availableSlotIds.push(id);
+        });
+
+        let prefersConsecutive = null; // null = 상관없음
+        if (consecCol >= 0) {
+          const v = (cols[consecCol] || '').trim();
+          if (v.startsWith('예')) prefersConsecutive = true;
+          else if (v.startsWith('아니오')) prefersConsecutive = false;
+        }
+
+        rows.push({ name, position, availableSlotIds, prefersConsecutive });
+      }
+      if (!rows.length) throw new Error('유효한 응답이 없습니다.');
+      return rows;
+    }
+
+    function splitCSVLines(text) {
+      const lines = []; let cur = '', inQ = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') { inQ = !inQ; cur += c; }
+        else if (c === '\n' && !inQ) { lines.push(cur); cur = ''; }
+        else { cur += c; }
+      }
+      if (cur) lines.push(cur);
+      return lines;
+    }
+
+    function parseCSVRow(line) {
+      const cells = []; let cur = '', inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else { inQ = !inQ; } }
+        else if (c === ',' && !inQ) { cells.push(cur); cur = ''; }
+        else { cur += c; }
+      }
+      cells.push(cur);
+      return cells.map(c => c.replace(/\r$/, ''));
+    }
+
+    // ─── 미리보기 ────────────────────────────────────
+    function renderPreview() {
+      const n = members.length;
+      document.getElementById('memberCount').textContent = n;
+      document.getElementById('btnToStep3').disabled = n === 0;
+      document.getElementById('previewCard').style.display = n ? 'block' : 'none';
+      document.getElementById('memberPreview').innerHTML = members.map(m => {
+        const cls = POSITION_CLASS[m.position] || 'badge-member';
+        const max = positionMax[m.position] || 2;
+        const consec = m.prefersConsecutive ? '<span class="badge" style="background:rgba(245,158,11,.18);color:#fde68a;font-size:.7rem">연속선호</span>' : '';
+        return `<div class="member-row">
+          <span class="member-row-name">${esc(m.name)}</span>
+          <span class="badge ${cls}">${esc(m.position)} ·${max}회</span>
+          ${consec}
+          <span class="slot-count">가능 ${m.availableSlotIds.length}타임</span>
+        </div>`;
+      }).join('');
+    }
+
+    // ─── Step 3 요약 ─────────────────────────────────
+    function renderStep3Summary() {
+      if (!members.length) { document.getElementById('step3Summary').innerHTML = ''; return; }
+      const totalAssign = members.reduce((s, m) => s + (positionMax[m.position] || 2), 0);
+      const consec = members.filter(m => m.prefersConsecutive).length;
+      const slots = enabledSlots.size;
+      const posBreakdown = POSITION_LABEL.filter(p => members.some(m => m.position === p))
+        .map(p => `${p} ${members.filter(m => m.position === p).length}명(${positionMax[p]}회)`).join(' · ');
+      document.getElementById('step3Summary').innerHTML =
+        `총 <strong style="color:var(--text)">${members.length}명</strong> · 연속선호 ${consec}명` +
+        `<br><span style="color:var(--muted);font-size:.82rem">${posBreakdown}</span>` +
+        `<br>운영 슬롯: <strong style="color:var(--green)">${slots}개 × 2 = ${slots * 2}타임</strong>`;
+    }
+
+    // ─── 배정 생성 ───────────────────────────────────
+    async function generateSchedule() {
+      try {
+        const res = await fetch('/schedule', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildPayload())
+        });
+        if (!res.ok) throw new Error('서버 오류: ' + res.status);
+        scheduleResult = await res.json();
+        renderResult(); goStep(4);
+      } catch (e) { alert('배정 실패: ' + e.message); }
+    }
+
+    function buildPayload() {
+      return {
+        members: members.map(m => ({
+          name: m.name,
+          position: m.position,
+          role: 'BOTH',
+          maxAssignments: positionMax[m.position] ?? 2,
+          availableSlotIds: m.availableSlotIds,
+          preferredSlotIds: [],
+          prefersConsecutive: m.prefersConsecutive
+        })),
+        enabledSlotIds: [...enabledSlots].sort((a, b) => a - b)
+      };
+    }
+
+    // ─── 결과 렌더링 ─────────────────────────────────
+    function dv(day) { return typeof day === 'number' ? day : (DAY_ENUM[day] || 0); }
+
+    function renderResult() {
+      if (!scheduleResult) return;
+      const g = Array.from({ length: 5 }, () => Array.from({ length: 5 }, () => ({ lead: null, support: null })));
+      scheduleResult.assignments.forEach(a => {
+        const di = dv(a.day) - 1, si = a.slotIndex;
+        if (di < 0 || di >= 5 || si < 0 || si >= 5) return;
+        if (a.dutyRole === '정') g[di][si].lead = a.memberName; else g[di][si].support = a.memberName;
+      });
+
+      let html = '<div></div>';
+      DAYS.forEach(d => { html += `<div class="result-header">${d}</div>`; });
+      TIMES.forEach((t, si) => {
+        html += `<div class="result-time">${t}</div>`;
+        for (let di = 0; di < 5; di++) {
+          const slotId = (di + 1) * 10 + si;
+          const c = g[di][si];
+          if (!enabledSlots.has(slotId)) {
+            html += '<div class="result-cell disabled" title="미운영 슬롯"></div>';
+          } else if (c.lead || c.support) {
+            html += '<div class="result-cell">' +
+              (c.lead ? `<div class="result-lead">정 ${esc(c.lead)}</div>` : '<div style="font-size:.68rem;color:var(--muted)">정 미배정</div>') +
+              (c.support ? `<div class="result-support">부 ${esc(c.support)}</div>` : '<div style="font-size:.68rem;color:var(--muted)">부 미배정</div>') +
+              '</div>';
+          } else {
+            html += '<div class="result-cell empty"></div>';
+          }
+        }
+      });
+      document.getElementById('resultGrid').innerHTML = html;
+
+      // 통계
+      const counts = scheduleResult.memberAssignmentCount || {};
+      const mm = {}; members.forEach(m => mm[m.name] = m);
+      let tbl = '<thead><tr><th>이름</th><th>직책</th><th>배정</th><th>달성률</th></tr></thead><tbody>';
+      Object.entries(counts).forEach(([n, c]) => {
+        const m = mm[n] || {};
+        const target = positionMax[m.position] || 2;
+        const pct = Math.min(Math.round(c / target * 100), 100);
+        const barColor = c >= target ? 'var(--green)' : c > 0 ? 'var(--gold)' : 'var(--accent)';
+        const cls = POSITION_CLASS[m.position] || 'badge-member';
+        tbl += `<tr>
+          <td><strong>${esc(n)}</strong></td>
+          <td><span class="badge ${cls}">${esc(m.position || '-')}</span></td>
+          <td><strong>${c}</strong> / ${target}회</td>
+          <td><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%;background:${barColor}"></div></div> ${pct}%</td>
+        </tr>`;
+      });
+      document.getElementById('statTable').innerHTML = tbl + '</tbody>';
+
+      const ub = document.getElementById('unassignedBox');
+      if (scheduleResult.unassignedSlots && scheduleResult.unassignedSlots.length)
+        ub.innerHTML = '<div class="err-box"><strong style="color:#fca5a5">미배정 슬롯</strong>' +
+          scheduleResult.unassignedSlots.map(s => `<p>&bull; ${esc(s)}</p>`).join('') + '</div>';
+      else ub.innerHTML = '<div style="margin-top:.5rem;font-size:.85rem;color:var(--green)">&#10003; 모든 슬롯 배정 완료</div>';
+
+      const wb = document.getElementById('warningBox');
+      if (scheduleResult.warnings && scheduleResult.warnings.length) {
+        const needsRetry = scheduleResult.warnings.some(w => w.includes('다시 실행'));
+        const retryBtn = needsRetry
+          ? `<div style="margin-top:.75rem"><button class="btn btn-green btn-sm" onclick="generateSchedule()">&#8635; 배정 다시 실행</button></div>`
+          : '';
+        wb.innerHTML = '<div class="warn-box"><strong style="color:#fde68a">주의</strong>' +
+          scheduleResult.warnings.map(s => `<p>&bull; ${esc(s)}</p>`).join('') + retryBtn + '</div>';
+      } else wb.innerHTML = '';
+    }
+
+    // ─── 룰렛 ───────────────────────────────────────
+    async function startRoulette() {
+      try {
+        const res = await fetch('/schedule', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildPayload()) });
+        if (!res.ok) throw new Error('서버 오류');
+        scheduleResult = await res.json();
+      } catch (e) { alert('배정 실패: ' + e.message); return; }
+      rouletteQueue = [...scheduleResult.assignments].sort((a, b) => {
+        const ai = dv(a.day) * 10 + a.slotIndex, bi = dv(b.day) * 10 + b.slotIndex;
+        return ai - bi || (a.dutyRole === '정' ? -1 : 1);
+      });
+      rouletteIdx = 0;
+      document.getElementById('overlay').classList.add('show');
+      showRoulette();
+    }
+
+    function showRoulette() {
+      const btn = document.getElementById('btnNext');
+      if (rouletteIdx >= rouletteQueue.length) {
+        btn.textContent = '결과 확인'; btn.onclick = finishRoulette;
+        document.getElementById('rouletteName').textContent = '배정 완료!';
+        document.getElementById('rouletteSlotLabel').textContent = '';
+        document.getElementById('rouletteRole').textContent = ''; return;
+      }
+      btn.textContent = '다음 배정 →'; btn.onclick = rouletteNext;
+      const a = rouletteQueue[rouletteIdx];
+      document.getElementById('rouletteSlotLabel').textContent = DAYS[dv(a.day) - 1] + '요일 ' + TIMES[a.slotIndex];
+      const rc = a.dutyRole === '정' ? '#a5b4fc' : '#fca5a5';
+      document.getElementById('rouletteRole').innerHTML = `<span style="color:${rc};font-weight:700">${a.dutyRole} 담당</span>`;
+      let f = 0; const names = members.map(m => m.name);
+      const tick = setInterval(() => {
+        document.getElementById('rouletteName').textContent = names[Math.floor(Math.random() * names.length)];
+        if (++f > 18) { clearInterval(tick); document.getElementById('rouletteName').textContent = a.memberName; }
+      }, 80);
+    }
+
+    function rouletteNext() { rouletteIdx++; showRoulette(); }
+    function finishRoulette() { document.getElementById('overlay').classList.remove('show'); renderResult(); goStep(4); }
+
+    // ─── 내보내기 ────────────────────────────────────
+    function exportCSV() {
+      if (!scheduleResult) return;
+      const rows = [['요일', '시간', '정', '부']], sm = {};
+      scheduleResult.assignments.forEach(a => {
+        const k = dv(a.day) + '_' + a.slotIndex;
+        if (!sm[k]) sm[k] = { day: a.dayKorean, time: TIMES[a.slotIndex] };
+        if (a.dutyRole === '정') sm[k].lead = a.memberName; else sm[k].support = a.memberName;
+      });
+      Object.entries(sm).sort(([a], [b]) => a.localeCompare(b))
+        .forEach(([, v]) => rows.push([v.day + '요일', v.time, v.lead || '', v.support || '']));
+      const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = '오피스아워_시간표.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function copyTable() {
+      if (!scheduleResult) return;
+      const sm = {}, lines = ['요일\t시간\t정\t부'];
+      scheduleResult.assignments.forEach(a => {
+        const k = dv(a.day) + '_' + a.slotIndex;
+        if (!sm[k]) sm[k] = { day: a.dayKorean, time: TIMES[a.slotIndex] };
+        if (a.dutyRole === '정') sm[k].lead = a.memberName; else sm[k].support = a.memberName;
+      });
+      Object.entries(sm).sort(([a], [b]) => a.localeCompare(b))
+        .forEach(([, v]) => lines.push(v.day + '요일\t' + v.time + '\t' + (v.lead || '미배정') + '\t' + (v.support || '미배정')));
+      navigator.clipboard.writeText(lines.join('\n'))
+        .then(() => alert('클립보드에 복사되었습니다!'))
+        .catch(() => alert('복사 실패. 직접 선택해서 복사해주세요.'));
+    }
+
+    function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  </script>
+</body>
+
+</html>
